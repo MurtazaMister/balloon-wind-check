@@ -11,6 +11,7 @@ import { Controls } from './components/Controls';
 import { InfoBadge } from './components/InfoBadge';
 import { Legend } from './components/Legend';
 import StatusBar from './components/StatusBar';
+import { HintsModal } from './components/HintsModal';
 
 const hasWebGL = () => {
   try {
@@ -28,7 +29,7 @@ function App() {
   const hourOffsetRef = useRef(0);
   
   const { data: samples } = useBalloons();
-  const { hourOffset, isPlaying, loopVideo, playbackFps, setHourOffset, setIsPlaying } = useUI();
+  const { hourOffset, isPlaying, loopVideo, playbackFps, setHourOffset, setIsPlaying, showHintsModal, setShowHintsModal } = useUI();
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -107,7 +108,13 @@ function App() {
       <Legend />
 
       {/* Status Bar */}
-      <StatusBar />
+      <StatusBar onShowHints={() => setShowHintsModal(true)} />
+
+      {/* Hints Modal */}
+      <HintsModal 
+        isOpen={showHintsModal} 
+        onClose={() => setShowHintsModal(false)} 
+      />
 
       {/* Balloon layers */}
       {mapLoaded && mapRef.current && samples && (

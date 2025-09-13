@@ -10,6 +10,7 @@ interface UIState {
   selectedBalloons: Set<string>; // selected balloon track IDs
   enabledColors: Set<string>;  // enabled color categories (green, blue, orange, red)
   viewMode: 'all' | 'selected'; // view mode for points display
+  showHintsModal: boolean;     // show hints modal on load
   setHourOffset: (h: number) => void;
   setPlaying: (p: boolean) => void;
   setHoveredTrackId: (id: string | null) => void;
@@ -23,6 +24,7 @@ interface UIState {
   setEnabledColors: (colors: Set<string>) => void;
   toggleColor: (color: string) => void;
   setViewMode: (mode: 'all' | 'selected') => void;
+  setShowHintsModal: (show: boolean) => void;
 }
 export const useUI = create<UIState>((set) => ({
   hourOffset: 0,
@@ -34,6 +36,7 @@ export const useUI = create<UIState>((set) => ({
   selectedBalloons: new Set(),
   enabledColors: new Set(['green', 'blue', 'orange', 'red']), // All colors enabled by default
   viewMode: 'all', // default to showing all points
+  showHintsModal: true, // show hints modal on first load
   setHourOffset: (h) => set({ hourOffset: h }),
   setPlaying: (p) => set({ playing: p }),
   setHoveredTrackId: (id) => set({ hoveredTrackId: id }),
@@ -63,4 +66,5 @@ export const useUI = create<UIState>((set) => ({
     return { enabledColors: newSet };
   }),
   setViewMode: (mode) => set({ viewMode: mode }),
+  setShowHintsModal: (show) => set({ showHintsModal: show }),
 }));

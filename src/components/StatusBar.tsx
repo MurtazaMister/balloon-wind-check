@@ -1,6 +1,10 @@
 import React from 'react';
 
-const StatusBar: React.FC = () => {
+interface StatusBarProps {
+  onShowHints?: () => void;
+}
+
+const StatusBar: React.FC<StatusBarProps> = ({ onShowHints }) => {
   return (
     <div className="status-bar">
       <div className="status-bar-content">
@@ -55,6 +59,25 @@ const StatusBar: React.FC = () => {
             <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
           </svg>
         </a>
+
+        {onShowHints && (
+          <button 
+            onClick={onShowHints}
+            className="status-link help"
+            title="Show Help Tips"
+          >
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="20" 
+              height="20" 
+              viewBox="0 0 24 24" 
+              fill="currentColor"
+              className="status-icon"
+            >
+              <text x="5" y="18" fontSize="16" fontWeight="bold">?</text>
+            </svg>
+          </button>
+        )}
       </div>
     </div>
   );
