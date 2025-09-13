@@ -29,6 +29,7 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
   }>({ visible: false, x: 0, y: 0, content: '' });
   
   console.log(`BalloonLayers: received ${samples.length} samples, hourOffset: ${hourOffset}`);
+  console.log('First few samples:', samples.slice(0, 3));
   
   // Debug: Log sample distribution by hour
   const samplesByHour = new Map<number, number>();
@@ -46,7 +47,7 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
 
   // Build points data filtered by current hour offset and enabled colors
   const pointsData = useMemo(() => {
-    console.log(`Building points data: viewMode=${viewMode}, hourOffset=${hourOffset}, selectedBalloons=${selectedBalloons.size}`);
+    console.log(`Building points data: viewMode=${viewMode}, hourOffset=${hourOffset}, selectedBalloons=${selectedBalloons.size}, enabledColors=${Array.from(enabledColors)}`);
     const pointFeatures: GeoJSON.Feature<GeoJSON.Point>[] = [];
     
     if (viewMode === 'selected') {
@@ -119,13 +120,14 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
               coordinates: [currentSample.lon, currentSample.lat]
             },
             properties: {
-              altitude: currentSample.altKm,
-              timestamp: currentSample.t,
-              h: currentSample.h,
-              trackId: trackId,
-              isSelected: true,
-              isTrajectory: true
-            }
+            altitude: currentSample.altKm,
+            timestamp: currentSample.t,
+            h: currentSample.h,
+            trackId: trackId,
+            isSelected: true,
+            isTrajectory: false, // During playback, show selected balloons at normal size
+            isPaused: !isPlaying
+          }
           });
         } else {
           // When paused: show trajectory trail up to current hourOffset
@@ -178,7 +180,8 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
                 h: sample.h,
                 trackId: trackId,
                 isSelected: true,
-                isTrajectory: true
+                isTrajectory: true,
+                isPaused: !isPlaying
               }
             });
           }
@@ -201,6 +204,17 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
       
       console.log(`Current hour samples: ${currentHourSamples.length}`);
       console.log(`Selected balloons:`, Array.from(selectedBalloons));
+      console.log(`Enabled colors:`, Array.from(enabledColors));
+      
+      // Debug: Log altitude distribution
+      const altitudeCounts = { green: 0, blue: 0, orange: 0, red: 0 };
+      currentHourSamples.forEach(sample => {
+        if (sample.altKm < 5) altitudeCounts.green++;
+        else if (sample.altKm < 10) altitudeCounts.blue++;
+        else if (sample.altKm < 20) altitudeCounts.orange++;
+        else altitudeCounts.red++;
+      });
+      console.log('Altitude distribution:', altitudeCounts);
       
       // Process current hour samples
       const pointFeaturesForCurrentHour: GeoJSON.Feature<GeoJSON.Point>[] = currentHourSamples.map((sample, index) => {
@@ -224,10 +238,13 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
             h: sample.h,
             trackId,
             isSelected,
-            isTrajectory: false
+            isTrajectory: false,
+            isPaused: !isPlaying
           }
         };
       });
+      
+      console.log(`Processed ${pointFeaturesForCurrentHour.length} point features for current hour`);
       
       // Process selected balloons - track them to current timestep
       const pointFeaturesForSelectedBalloons: GeoJSON.Feature<GeoJSON.Point>[] = [];
@@ -305,7 +322,8 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
             h: currentSample.h,
             trackId, // Use the original trackId from selectedBalloons
             isSelected: true, // Always selected since these are from selectedBalloons
-            isTrajectory: false
+            isTrajectory: false,
+            isPaused: !isPlaying
           }
         });
       }
@@ -395,13 +413,13 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
           ],
           'circle-stroke-width': [
             'case',
-            ['get', 'isSelected'], 1.5,  // Thinner stroke for selected points
+            ['all', ['get', 'isSelected'], ['get', 'isPaused']], 1.5,  // Show border only when selected AND paused
             1
           ],
           'circle-stroke-color': [
             'case',
-            ['get', 'isSelected'], '#000000',  // Black stroke for selected points
-            '#ffffff'  // White stroke for unselected points
+            ['all', ['get', 'isSelected'], ['get', 'isPaused']], '#000000',  // Black stroke for selected points when paused
+            '#ffffff'  // White stroke for unselected points or when playing
           ]
         }
       });
