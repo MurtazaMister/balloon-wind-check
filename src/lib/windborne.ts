@@ -1,9 +1,10 @@
 import { RawTripletArray } from './guards';
 import type { Sample } from '../types/balloon';
+import { WINDBORNE_BASE } from './constants';
 
 // Test function to manually fetch a single hour
 export async function testFetchSingleHour(hour: number = 0): Promise<any> {
-  const url = `/api/windborne/${hour.toString().padStart(2, '0')}.json`;
+  const url = `${WINDBORNE_BASE}/${hour.toString().padStart(2, '0')}.json`;
   
   try {
     const response = await fetch(url);
@@ -21,7 +22,7 @@ export async function fetchLast24h(): Promise<Sample[]> {
   
   // Create promises for hours 0-23
   for (let h = 0; h < 24; h++) {
-    const url = `/api/windborne/${h.toString().padStart(2, '0')}.json`;
+    const url = `${WINDBORNE_BASE}/${h.toString().padStart(2, '0')}.json`;
     promises.push(
       fetch(url)
         .then(async (response) => {

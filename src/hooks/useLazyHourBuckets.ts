@@ -3,12 +3,13 @@ import { useEffect } from 'react';
 import { useTrails } from '../state/trails';
 import { buildPairSegmentsOffMain } from '../lib/segmentsWorker';
 import { RawTripletArray } from '../lib/guards';
+import { WINDBORNE_BASE } from '../lib/constants';
 import type { Sample } from '../types/balloon';
 
 // Fetch a single hour bucket
 async function fetchHourBucket(hour: number): Promise<Sample[]> {
   const now = new Date();
-  const url = `/api/windborne/${hour.toString().padStart(2, '0')}.json`;
+  const url = `${WINDBORNE_BASE}/${hour.toString().padStart(2, '0')}.json`;
   
   try {
     const response = await fetch(url);
@@ -50,6 +51,10 @@ async function fetchHourBucket(hour: number): Promise<Sample[]> {
     return samples;
   } catch (error) {
     console.warn(`Error fetching hour ${hour}:`, error);
+    // Check if it's a CORS error
+    if (error instanceof Error && error.name === 'TypeError' && error.message.includes('CORS')) {
+      console.warn(`CORS error for hour ${hour} - this might be expected for external APIs`);
+    }
     return [];
   }
 }

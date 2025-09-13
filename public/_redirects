@@ -1,0 +1,8 @@
+# Netlify redirects file for CORS proxy
+# This file enables proxying API requests to avoid CORS issues
+
+# Proxy Windborne API requests
+/api/windborne/*  https://a.windbornesystems.com/treasure/:splat  200
+
+# Fallback for SPA routing
+/*    /index.html   200
