@@ -15,6 +15,11 @@ const hints = [
     id: 3,
     title: "Customize View",
     content: "Uncheck boxes in the legend (bottom left) to customize what balloons you are viewing"
+  },
+  {
+    id: 4,
+    title: "View Trajectory",
+    content: "To view trajectory - select the required balloons, uncheck 'Loop video' option and let it play till the end"
   }
 ];
 
