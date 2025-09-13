@@ -16,6 +16,13 @@ export function useBalloons(): {
     refetchOnWindowFocus: false,
   });
 
+  console.log('useBalloons hook state:', {
+    isLoading: query.isLoading,
+    error: query.error,
+    dataLength: query.data?.length || 0,
+    hasData: !!query.data
+  });
+
   return {
     data: query.data,
     isLoading: query.isLoading,

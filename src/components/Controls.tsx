@@ -5,13 +5,23 @@ export function Controls() {
   const { 
     hourOffset, 
     isPlaying, 
-    showPoints, 
+    loopVideo,
     playbackFps,
+    selectedBalloons,
+    viewMode,
     setHourOffset, 
     setIsPlaying, 
-    setShowPoints, 
-    setPlaybackFps
+    setLoopVideo, 
+    setPlaybackFps,
+    setViewMode,
+    clearSelectedBalloons,
+    setEnabledColors
   } = useUI();
+
+  // Debug: Track hourOffset changes
+  useEffect(() => {
+    console.log(`hourOffset changed to: ${hourOffset}`);
+  }, [hourOffset]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -43,17 +53,56 @@ export function Controls() {
     setIsPlaying(false);
   };
 
+  const handleRestart = () => {
+    setHourOffset(0);
+    setIsPlaying(true);
+  };
+
   const handlePlayPause = () => {
+    console.log(`Play/Pause clicked: isPlaying=${isPlaying}, hourOffset=${hourOffset}`);
+    if (!isPlaying) {
+      // Starting playback
+      if (hourOffset === 23) {
+        // If at hour 23, restart from 0
+        console.log('Restarting from hour 0 because at hour 23');
+        setHourOffset(0);
+      }
+    } else {
+      // Pausing - should maintain current hourOffset
+      console.log(`Pausing at hour ${hourOffset}`);
+    }
     setIsPlaying(!isPlaying);
   };
 
-  const handleShowPointsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setShowPoints(e.target.checked);
+  const handleLoopVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLoopVideo(e.target.checked);
   };
 
 
   const handlePlaybackSpeedChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setPlaybackFps(parseFloat(e.target.value));
+  };
+
+  const handleViewModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newViewMode = e.target.value as 'all' | 'selected';
+    console.log(`View mode changing from ${viewMode} to ${newViewMode}, current hourOffset: ${hourOffset}`);
+    setViewMode(newViewMode);
+  };
+
+  const handleReset = () => {
+    console.log('Reset button clicked - resetting to hour 0');
+    // Clear all selections
+    clearSelectedBalloons();
+    
+    // Reset view mode to show all points
+    setViewMode('all');
+    
+    // Enable all color filters (green, blue, orange, red)
+    setEnabledColors(new Set(['green', 'blue', 'orange', 'red']));
+    
+    // Reset to current time and stop playback
+    setHourOffset(0);
+    setIsPlaying(false);
   };
 
   return (
@@ -106,15 +155,33 @@ export function Controls() {
         {isPlaying ? 'Pause' : 'Play'}
       </button>
 
-      {/* Show Points Checkbox */}
+      {/* Restart Button */}
+      <button
+        onClick={handleRestart}
+        style={{
+          padding: '6px 12px',
+          border: '1px solid #ddd',
+          borderRadius: '4px',
+          background: '#fff3e0',
+          cursor: 'pointer',
+          fontSize: '12px',
+          fontWeight: 'bold',
+          color: '#e65100'
+        }}
+        title="Restart animation from beginning"
+      >
+        Restart
+      </button>
+
+      {/* Loop Video Checkbox */}
       <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px' }}>
         <input
           type="checkbox"
-          checked={showPoints}
-          onChange={handleShowPointsChange}
+          checked={loopVideo}
+          onChange={handleLoopVideoChange}
           style={{ margin: 0 }}
         />
-        Show points
+        Loop video
       </label>
 
 
@@ -136,6 +203,45 @@ export function Controls() {
           <option value={4}>2x (4 fps)</option>
         </select>
       </div>
+
+      {/* View Mode Dropdown - only enabled when selected > 0 && paused */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px' }}>
+        <label>View:</label>
+        <select
+          value={viewMode}
+          onChange={handleViewModeChange}
+          disabled={selectedBalloons.size === 0 || isPlaying}
+          style={{
+            padding: '2px 4px',
+            border: '1px solid #ddd',
+            borderRadius: '2px',
+            fontSize: '11px',
+            opacity: (selectedBalloons.size === 0 || isPlaying) ? 0.5 : 1,
+            cursor: (selectedBalloons.size === 0 || isPlaying) ? 'not-allowed' : 'pointer'
+          }}
+        >
+          <option value="all">All Points</option>
+          <option value="selected">Selected Only</option>
+        </select>
+      </div>
+
+      {/* Reset Button - always enabled to restore all points */}
+      <button
+        onClick={handleReset}
+        style={{
+          padding: '6px 12px',
+          border: '1px solid #ddd',
+          borderRadius: '4px',
+          background: '#fff3e0',
+          cursor: 'pointer',
+          fontSize: '12px',
+          fontWeight: 'bold',
+          color: '#e65100'
+        }}
+        title="Reset view: show all points, clear selections, enable all colors"
+      >
+        Reset View
+      </button>
 
       {/* Keyboard shortcuts tooltip */}
       <div style={{ 

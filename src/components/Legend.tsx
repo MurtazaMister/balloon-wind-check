@@ -1,11 +1,13 @@
-import React from 'react';
+import { useUI } from '../state/ui';
 
 export function Legend() {
+  const { enabledColors, toggleColor } = useUI();
+  
   const heightRanges = [
-    { min: 0, max: 5, color: '#4CAF50', label: '0-5km' },
-    { min: 5, max: 10, color: '#2196F3', label: '5-10km' },
-    { min: 10, max: 20, color: '#FF9800', label: '10-20km' },
-    { min: 20, max: Infinity, color: '#F44336', label: '>20km' }
+    { min: 0, max: 5, color: '#4CAF50', label: '0-5km', colorKey: 'green' },
+    { min: 5, max: 10, color: '#2196F3', label: '5-10km', colorKey: 'blue' },
+    { min: 10, max: 20, color: '#FF9800', label: '10-20km', colorKey: 'orange' },
+    { min: 20, max: Infinity, color: '#F44336', label: '>20km', colorKey: 'red' }
   ];
 
   return (
@@ -19,7 +21,7 @@ export function Legend() {
       boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
       fontSize: '12px',
       zIndex: 1000,
-      minWidth: '120px'
+      minWidth: '140px'
     }}>
       <div style={{
         fontWeight: 'bold',
@@ -37,15 +39,28 @@ export function Legend() {
           gap: '8px',
           marginBottom: '4px'
         }}>
+          <input
+            type="checkbox"
+            checked={enabledColors.has(range.colorKey)}
+            onChange={() => toggleColor(range.colorKey)}
+            style={{
+              margin: 0,
+              cursor: 'pointer'
+            }}
+          />
           <div style={{
             width: '12px',
             height: '12px',
             borderRadius: '50%',
             backgroundColor: range.color,
             border: '1px solid #ffffff',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.2)'
+            boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+            opacity: enabledColors.has(range.colorKey) ? 1 : 0.3
           }} />
-          <span style={{ color: '#555' }}>
+          <span style={{ 
+            color: enabledColors.has(range.colorKey) ? '#555' : '#999',
+            textDecoration: enabledColors.has(range.colorKey) ? 'none' : 'line-through'
+          }}>
             {range.label}
           </span>
         </div>
@@ -59,7 +74,7 @@ export function Legend() {
         color: '#666',
         fontStyle: 'italic'
       }}>
-        Click dots to select balloons
+        Uncheck to hide altitude ranges
       </div>
     </div>
   );

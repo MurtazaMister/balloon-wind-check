@@ -3,7 +3,7 @@ import { useUI } from '../state/ui';
 import { useBalloons } from '../hooks/useBalloons';
 
 export function InfoBadge() {
-  const { hourOffset, showPoints } = useUI();
+  const { hourOffset, enabledColors } = useUI();
   const { data: samples, isLoading, error } = useBalloons();
 
   const info = useMemo(() => {
@@ -14,10 +14,18 @@ export function InfoBadge() {
       minute: '2-digit' 
     });
 
-    // Count visible points for current hour
+    // Count visible points for current hour and enabled colors
     const visiblePoints = samples?.filter(sample => {
-      if (!showPoints) return false;
-      return sample.h === hourOffset;
+      if (sample.h !== hourOffset) return false;
+      
+      // Filter by enabled colors based on altitude
+      const altitude = sample.altKm;
+      if (altitude < 5 && !enabledColors.has('green')) return false;
+      if (altitude >= 5 && altitude < 10 && !enabledColors.has('blue')) return false;
+      if (altitude >= 10 && altitude < 20 && !enabledColors.has('orange')) return false;
+      if (altitude >= 20 && !enabledColors.has('red')) return false;
+      
+      return true;
     }).length || 0;
 
     return {
@@ -25,7 +33,7 @@ export function InfoBadge() {
       visiblePoints,
       lastRefresh
     };
-  }, [hourOffset, showPoints, samples]);
+  }, [hourOffset, enabledColors, samples]);
 
   return (
     <div style={{
@@ -47,11 +55,9 @@ export function InfoBadge() {
         <strong>Time:</strong> {info.timeDisplay}
       </div>
       
-      {showPoints && (
-        <div style={{ marginBottom: '2px' }}>
-          <strong>Points shown:</strong> {info.visiblePoints}
-        </div>
-      )}
+      <div style={{ marginBottom: '2px' }}>
+        <strong>Points shown:</strong> {info.visiblePoints}
+      </div>
       
       <div style={{ marginBottom: '2px' }}>
         <strong>Last refresh:</strong> {info.lastRefresh}

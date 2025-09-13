@@ -25,7 +25,7 @@ function App() {
   const hourOffsetRef = useRef(0);
   
   const { data: samples } = useBalloons();
-  const { hourOffset, isPlaying, playbackFps, setHourOffset } = useUI();
+  const { hourOffset, isPlaying, loopVideo, playbackFps, setHourOffset, setIsPlaying } = useUI();
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -71,12 +71,25 @@ function App() {
 
     const intervalMs = (1000 / playbackFps) * 0.5; // 500ms for 2fps
     const intervalId = setInterval(() => {
-      const nextHour = (hourOffsetRef.current + 1) % 24;
-      setHourOffset(nextHour);
+      const currentHour = hourOffsetRef.current;
+      
+      if (currentHour >= 23) {
+        // Reached the end
+        if (loopVideo) {
+          // Loop back to 0
+          setHourOffset(0);
+        } else {
+          // Stop the animation at 23h
+          setIsPlaying(false);
+        }
+      } else {
+        // Continue to next hour
+        setHourOffset(currentHour + 1);
+      }
     }, intervalMs);
 
     return () => clearInterval(intervalId);
-  }, [isPlaying, playbackFps, setHourOffset]);
+  }, [isPlaying, loopVideo, playbackFps, setHourOffset, setIsPlaying]);
 
   return (
     <div style={{ height: '100vh', width: '100vw', position: 'relative' }}>
