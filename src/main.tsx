@@ -10,17 +10,8 @@ import { testFetchSingleHour } from "./lib/windborne";
 
 // Add a simple API test function
 (window as any).testAPI = async () => {
-  console.log('Testing API endpoints...');
   try {
-    const response = await fetch('/api/windborne/00.json');
-    console.log('Response status:', response.status);
-    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-    if (response.ok) {
-      const data = await response.json();
-      console.log('Data received:', data);
-    } else {
-      console.log('Response text:', await response.text());
-    }
+    await fetch('/api/windborne/00.json');
   } catch (error) {
     console.error('API test error:', error);
   }

@@ -18,9 +18,9 @@ export function Controls() {
     setEnabledColors
   } = useUI();
 
+
   // Debug: Track hourOffset changes
   useEffect(() => {
-    console.log(`hourOffset changed to: ${hourOffset}`);
   }, [hourOffset]);
 
   // Keyboard shortcuts
@@ -41,12 +41,16 @@ export function Controls() {
           setHourOffset(0);
           setIsPlaying(false);
           break;
+        case 'escape':
+          e.preventDefault();
+          clearSelectedBalloons();
+          break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPlaying, setIsPlaying, setHourOffset]);
+  }, [isPlaying, setIsPlaying, setHourOffset, clearSelectedBalloons]);
 
   const handleNow = () => {
     setHourOffset(0);
@@ -59,17 +63,14 @@ export function Controls() {
   };
 
   const handlePlayPause = () => {
-    console.log(`Play/Pause clicked: isPlaying=${isPlaying}, hourOffset=${hourOffset}`);
     if (!isPlaying) {
       // Starting playback
       if (hourOffset === 23) {
         // If at hour 23, restart from 0
-        console.log('Restarting from hour 0 because at hour 23');
         setHourOffset(0);
       }
     } else {
       // Pausing - should maintain current hourOffset
-      console.log(`Pausing at hour ${hourOffset}`);
     }
     setIsPlaying(!isPlaying);
   };
@@ -85,12 +86,10 @@ export function Controls() {
 
   const handleViewModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newViewMode = e.target.value as 'all' | 'selected';
-    console.log(`View mode changing from ${viewMode} to ${newViewMode}, current hourOffset: ${hourOffset}`);
     setViewMode(newViewMode);
   };
 
   const handleReset = () => {
-    console.log('Reset button clicked - resetting to hour 0');
     // Clear all selections
     clearSelectedBalloons();
     
@@ -238,9 +237,9 @@ export function Controls() {
           fontWeight: 'bold',
           color: '#e65100'
         }}
-        title="Reset view: show all points, clear selections, enable all colors"
+        title="Reset selection: show all points, clear selections, enable all colors"
       >
-        Reset View
+        Reset Selection
       </button>
 
       {/* Keyboard shortcuts tooltip */}
@@ -253,7 +252,36 @@ export function Controls() {
       }}>
         <div>Space: Play/Pause</div>
         <div>N: Now</div>
+        <div>Esc: Clear Points</div>
       </div>
+
+      {/* Wind Comparison Legend */}
+      {selectedBalloons.size > 0 && (
+        <div style={{
+          fontSize: '12px',
+          color: '#333',
+          marginLeft: '8px',
+          borderLeft: '1px solid #ddd',
+          paddingLeft: '8px',
+          background: 'rgba(33, 150, 243, 0.1)',
+          padding: '6px 10px',
+          borderRadius: '4px'
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+            Wind Comparison ({selectedBalloons.size} point{selectedBalloons.size !== 1 ? 's' : ''})
+          </div>
+          <div style={{ fontSize: '11px', color: '#333', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div style={{ width: '12px', height: '2px', backgroundColor: '#2196F3' }}></div>
+              <span>Observed</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div style={{ width: '12px', height: '2px', backgroundColor: '#F44336' }}></div>
+              <span>Forecast</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

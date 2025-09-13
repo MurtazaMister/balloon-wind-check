@@ -10,7 +10,6 @@ export interface BalloonTrack {
  * Uses proximity-based matching to identify the same balloon across time steps
  */
 export function buildBalloonTracks(samples: Sample[]): BalloonTrack[] {
-  console.log(`buildBalloonTracks: processing ${samples.length} samples`);
   
   // For now, let's create a simple approach: each sample is its own track
   // This will help us debug the display issue first
@@ -25,7 +24,6 @@ export function buildBalloonTracks(samples: Sample[]): BalloonTrack[] {
     });
   }
   
-  console.log(`buildBalloonTracks: returning ${tracks.length} tracks (simple approach)`);
   return tracks;
 }
 

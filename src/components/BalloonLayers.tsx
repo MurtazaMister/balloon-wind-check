@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import maplibregl, { Map as MapLibreMap } from 'maplibre-gl';
 import { useUI } from '../state/ui';
+import { useSelection } from '../state/selection';
 import type { Sample } from '../types/balloon';
 
 type Props = {
@@ -19,6 +20,8 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
     removeSelectedBalloon,
     setViewMode
   } = useUI();
+
+  const { togglePoint } = useSelection();
   
   // Tooltip state
   const [tooltip, setTooltip] = useState<{
@@ -28,15 +31,12 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
     content: string;
   }>({ visible: false, x: 0, y: 0, content: '' });
   
-  console.log(`BalloonLayers: received ${samples.length} samples, hourOffset: ${hourOffset}`);
-  console.log('First few samples:', samples.slice(0, 3));
   
   // Debug: Log sample distribution by hour
   const samplesByHour = new Map<number, number>();
   samples.forEach(sample => {
     samplesByHour.set(sample.h, (samplesByHour.get(sample.h) || 0) + 1);
   });
-  console.log('Sample distribution by hour:', Object.fromEntries(samplesByHour));
 
   // Auto-switch to selected view when playing and there are selected points
   useEffect(() => {
@@ -47,7 +47,6 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
 
   // Build points data filtered by current hour offset and enabled colors
   const pointsData = useMemo(() => {
-    console.log(`Building points data: viewMode=${viewMode}, hourOffset=${hourOffset}, selectedBalloons=${selectedBalloons.size}, enabledColors=${Array.from(enabledColors)}`);
     const pointFeatures: GeoJSON.Feature<GeoJSON.Point>[] = [];
     
     if (viewMode === 'selected') {
@@ -202,9 +201,6 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
         return true;
       });
       
-      console.log(`Current hour samples: ${currentHourSamples.length}`);
-      console.log(`Selected balloons:`, Array.from(selectedBalloons));
-      console.log(`Enabled colors:`, Array.from(enabledColors));
       
       // Debug: Log altitude distribution
       const altitudeCounts = { green: 0, blue: 0, orange: 0, red: 0 };
@@ -214,17 +210,11 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
         else if (sample.altKm < 20) altitudeCounts.orange++;
         else altitudeCounts.red++;
       });
-      console.log('Altitude distribution:', altitudeCounts);
       
       // Process current hour samples
       const pointFeaturesForCurrentHour: GeoJSON.Feature<GeoJSON.Point>[] = currentHourSamples.map((sample, index) => {
         const trackId = `track-${sample.h}-${index}`;
         const isSelected = selectedBalloons.has(trackId);
-        
-        // Debug: Log selected points
-        if (isSelected) {
-          console.log(`Selected point found in All Points mode (current hour): ${trackId}`);
-        }
         
         return {
           type: 'Feature' as const,
@@ -243,8 +233,6 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
           }
         };
       });
-      
-      console.log(`Processed ${pointFeaturesForCurrentHour.length} point features for current hour`);
       
       // Process selected balloons - track them to current timestep
       const pointFeaturesForSelectedBalloons: GeoJSON.Feature<GeoJSON.Point>[] = [];
@@ -308,8 +296,6 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
         if (altitude >= 10 && altitude < 20 && !enabledColors.has('orange')) continue;
         if (altitude >= 20 && !enabledColors.has('red')) continue;
         
-        console.log(`Selected balloon tracked to current timestep: ${trackId} -> hour ${hourOffset}`);
-        
         pointFeaturesForSelectedBalloons.push({
           type: 'Feature' as const,
           geometry: {
@@ -332,8 +318,6 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
       pointFeatures.push(...pointFeaturesForSelectedBalloons);
     }
 
-    console.log(`Built ${pointFeatures.length} point features`);
-    console.log('Point features sample:', pointFeatures.slice(0, 2));
     return {
       type: 'FeatureCollection',
       features: pointFeatures
@@ -349,13 +333,11 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
       } as GeoJSON.FeatureCollection<GeoJSON.LineString>;
     }
 
-    console.log('Building trajectories for selected balloons...');
     const features: GeoJSON.Feature<GeoJSON.LineString>[] = [];
     
     // For now, let's keep it simple and not build complex trajectories
     // This will be implemented later when the basic point display works
     
-    console.log(`Built ${features.length} trajectory segments`);
     return {
       type: 'FeatureCollection',
       features
@@ -364,12 +346,8 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
 
   useEffect(() => {
     if (!map.isStyleLoaded()) {
-      console.log('Map style not loaded yet, waiting...');
       return;
     }
-
-    console.log('Map style loaded, setting up layers...');
-    console.log('Points data:', pointsData);
 
     // Add points source and layer
     if (!map.getSource('points-source')) {
@@ -500,7 +478,7 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
     map.on('mouseenter', 'points-layer', handleMouseEnter);
     map.on('mouseleave', 'points-layer', handleMouseLeaveCursor);
 
-    // Click handler for balloon track selection (only when not playing)
+    // Click handler for balloon track selection and point selection (only when not playing)
     const handleClick = (e: maplibregl.MapMouseEvent) => {
       if (isPlaying) return; // Don't allow selection during playback
       
@@ -511,13 +489,23 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
       if (features.length > 0) {
         const feature = features[0];
         const trackId = feature.properties?.trackId;
+        const lat = feature.properties?.lat;
+        const lon = feature.properties?.lon;
+        const h = feature.properties?.h;
         
+        // Handle balloon track selection (existing functionality)
         if (trackId) {
           if (selectedBalloons.has(trackId)) {
             removeSelectedBalloon(trackId);
           } else {
             addSelectedBalloon(trackId);
           }
+        }
+        
+        // Handle point selection for wind comparison (new functionality)
+        if (lat !== undefined && lon !== undefined && h !== undefined) {
+          const pointId = `${lat},${lon},${h}`;
+          togglePoint(pointId);
         }
       }
     };
@@ -526,31 +514,38 @@ export function BalloonLayers({ map, samples, hourOffset }: Props) {
 
     return () => {
       // Clean up event listeners
-      map.off('mousemove', 'points-layer', handleMouseMove);
-      map.off('mouseleave', 'points-layer', handleMouseLeave);
-      map.off('mouseenter', 'points-layer', handleMouseEnter);
-      map.off('mouseleave', 'points-layer', handleMouseLeaveCursor);
-      map.off('click', 'points-layer', handleClick);
+      if (map && typeof map.off === 'function') {
+        map.off('mousemove', 'points-layer', handleMouseMove);
+        map.off('mouseleave', 'points-layer', handleMouseLeave);
+        map.off('mouseenter', 'points-layer', handleMouseEnter);
+        map.off('mouseleave', 'points-layer', handleMouseLeaveCursor);
+        map.off('click', 'points-layer', handleClick);
 
-      // Clean up layers and sources
-      if (map.getLayer('points-layer')) {
-        map.removeLayer('points-layer');
-      }
-      if (map.getSource('points-source')) {
-        map.removeSource('points-source');
-      }
-      if (map.getLayer('trajectory-layer')) {
-        map.removeLayer('trajectory-layer');
-      }
-      if (map.getSource('trajectory-source')) {
-        map.removeSource('trajectory-source');
+        // Clean up layers and sources
+        try {
+          if (map.getLayer && map.getLayer('points-layer')) {
+            map.removeLayer('points-layer');
+          }
+          if (map.getSource && map.getSource('points-source')) {
+            map.removeSource('points-source');
+          }
+          if (map.getLayer && map.getLayer('trajectory-layer')) {
+            map.removeLayer('trajectory-layer');
+          }
+          if (map.getSource && map.getSource('trajectory-source')) {
+            map.removeSource('trajectory-source');
+          }
+        } catch (error) {
+          // Silently ignore cleanup errors during unmount
+          console.warn('Map cleanup error (safe to ignore):', error);
+        }
       }
     };
-  }, [map, pointsData, trajectoryData, isPlaying]);
+  }, [map, pointsData, trajectoryData, isPlaying, selectedBalloons, addSelectedBalloon, removeSelectedBalloon, togglePoint]);
 
   // Update points layer visibility
   useEffect(() => {
-    if (!map.getLayer('points-layer')) return;
+    if (!map || !map.getLayer || !map.getLayer('points-layer')) return;
 
     // Always show points layer (filtering is done at data level)
     map.setLayoutProperty('points-layer', 'visibility', 'visible');

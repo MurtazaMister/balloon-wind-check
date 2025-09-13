@@ -5,6 +5,7 @@ import { MAP_STYLE_URL } from './mapStyle';
 import { useBalloons } from './hooks/useBalloons';
 import { useUI } from './state/ui';
 import { BalloonLayers } from './components/BalloonLayers';
+import { PointCompareLayers } from './components/PointCompareLayers';
 import { Controls } from './components/Controls';
 import { InfoBadge } from './components/InfoBadge';
 import { Legend } from './components/Legend';
@@ -52,7 +53,6 @@ function App() {
     map.addControl(new maplibregl.AttributionControl(), 'bottom-right');
 
     map.on('load', () => {
-      console.log('Map loaded');
       setMapLoaded(true);
     });
 
@@ -106,11 +106,18 @@ function App() {
 
       {/* Balloon layers */}
       {mapLoaded && mapRef.current && samples && (
-        <BalloonLayers 
-          map={mapRef.current} 
-          samples={samples} 
-          hourOffset={hourOffset} 
-        />
+        <>
+          <BalloonLayers 
+            map={mapRef.current} 
+            samples={samples} 
+            hourOffset={hourOffset} 
+          />
+          <PointCompareLayers 
+            map={mapRef.current} 
+            samples={samples}
+            hourOffset={hourOffset}
+          />
+        </>
       )}
     </div>
   );
