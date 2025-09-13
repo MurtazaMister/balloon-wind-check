@@ -1,8 +1,12 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
 }
 
 .logo {
@@ -39,4 +43,138 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* Status Bar Styles */
+.status-bar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 30px;
+  z-index: 1000;
+  padding: 8px 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+}
+
+.status-bar:hover {
+  transform: translateX(-50%) translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.status-bar-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 8px;
+  border-radius: 50%;
+  position: relative;
+}
+
+.status-link:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px) scale(1.1);
+}
+
+.status-link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.status-link:hover::before {
+  opacity: 1;
+}
+
+.status-icon {
+  width: 20px;
+  height: 20px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 1;
+}
+
+.status-link:hover .status-icon {
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
+}
+
+/* Brand colors for icons */
+.status-link.github {
+  color: #333;
+}
+
+.status-link.github:hover {
+  color: #000;
+}
+
+.status-link.linkedin {
+  color: #0077b5;
+}
+
+.status-link.linkedin:hover {
+  color: #005885;
+}
+
+.status-link.email {
+  color: #ea4335;
+}
+
+.status-link.email:hover {
+  color: #d33b2c;
+}
+
+/* Light mode adjustments */
+@media (prefers-color-scheme: light) {
+  .status-bar {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  }
+  
+  .status-bar:hover {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  }
+  
+  .status-link:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+  
+  .status-link::before {
+    background: linear-gradient(45deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.02));
+  }
+  
+  .status-link:hover .status-icon {
+    filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.2));
+  }
+  
+  .status-link.github {
+    color: #333;
+  }
+  
+  .status-link.github:hover {
+    color: #000;
+  }
 }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import maplibregl, { Map } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import './App.css';
 import { MAP_STYLE_URL } from './mapStyle';
 import { useBalloons } from './hooks/useBalloons';
 import { useUI } from './state/ui';
@@ -9,6 +10,7 @@ import { PointCompareLayers } from './components/PointCompareLayers';
 import { Controls } from './components/Controls';
 import { InfoBadge } from './components/InfoBadge';
 import { Legend } from './components/Legend';
+import StatusBar from './components/StatusBar';
 
 const hasWebGL = () => {
   try {
@@ -103,6 +105,9 @@ function App() {
 
       {/* Legend */}
       <Legend />
+
+      {/* Status Bar */}
+      <StatusBar />
 
       {/* Balloon layers */}
       {mapLoaded && mapRef.current && samples && (
