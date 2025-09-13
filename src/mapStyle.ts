@@ -1,1 +1,2 @@
-export const MAP_STYLE_URL = "https://demotiles.maplibre.org/style.json";
+export const MAP_STYLE_URL =
+  "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";

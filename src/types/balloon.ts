@@ -1,4 +1,6 @@
-export type RawPoint = [number, number, number]; // [lat, lon, alt_km]
+export type RawPoint = [number, number, number]; // [lat, lon, altKm]
+
+export type Sample = { lat: number; lon: number; altKm: number; t: string; h: number }; // ISO + hour
 
 export interface BalloonPoint {
   lat: number;
